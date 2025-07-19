@@ -1,7 +1,599 @@
-# Ing.Carlos
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APP PARA DEFINIR EL MÓDULO DE FINURA EN FINOS Y GRUESOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #1F2937; color: #F3F4F6; }
+        .required::after { content: "*"; color: #F3F4F6; margin-left: 2px; }
+        .tooltip { position: relative; display: inline-block; cursor: pointer; }
+        .tooltip .tooltip-text { visibility: hidden; width: 200px; background-color: #374151; color: #F3F4F6; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
+        .tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
+        .card { background-color: #374151; border: 1px solid #4B5563; border-radius: 0.5rem; }
+        input, input:focus { background-color: #4B5563; color: #F3F4F6; border: 1px solid #6B7280; outline: none; border-radius: 0.25rem; width: 100%; padding: 0.5rem; font-size: 1rem; }
+        .error-message { background-color: #7F1D1D; border-left: 4px solid #DC2626; padding: 12px; margin-bottom: 16px; color: #F3F4F6; border-radius: 0.5rem; }
+        .table-container { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+        table { background-color: #374151; border: 1px solid #4B5563; border-radius: 0.5rem; width: 100%; }
+        th { color: #F3F4F6; border-bottom: 2px solid #4B5563; }
+        td { color: #D1D5DB; border-bottom: 1px solid #4B5563; }
+        .chart-container { width: 100%; max-width: 800px; margin: 0 auto; background-color: #FFFFFF; padding: 1rem; border: 1px solid #CCCCCC; border-radius: 0.5rem; }
+        .centered-title { text-align: center; }
+        .copy-message { display: none; color: #10B981; font-size: 0.875rem; margin-top: 0.5rem; text-align: center; }
+        @media (max-width: 768px) { .table-container { flex-direction: column; } .chart-container { max-width: 100%; } table { font-size: 0.875rem; } th, td { padding: 0.5rem; } }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gray-800 shadow-md py-4 border-b border-gray-600">
+            <div class="container mx-auto px-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <i class="fas fa-cubes text-3xl text-gray-200 mr-3"></i>
+                    <h1 class="text-2xl font-bold text-gray-200">APP PARA DEFINIR EL MÓDULO DE FINURA EN FINOS Y GRUESOS</h1>
+                </div>
+                <div>
+                    <span class="text-gray-200 text-xs">Autor de la app.: Ing. Carlos H. Huaytan Victoria</span>
+                </div>
+            </div>
+        </header>
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Introduction -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold mb-3 text-gray-200">Instrucciones de Uso</h2>
+                <div class="card p-6">
+                    <p class="mb-4 text-gray-300">Esta app ayuda a determinar el módulo de finura; tanto de agregados finos, como gruesos, con curvas granulométricas.</p>
+                    <p class="mb-4 text-gray-300">Pasos:</p>
+                    <ol class="list-decimal pl-6 mb-6 space-y-2 text-gray-300">
+                        <li>Copia una fila de datos de peso retenido desde tu Excel y pégala en cualquier celda de 'Peso Ret. (g)' de cada tabla.</li>
+                        <li>Haz clic en "Calcular Módulos" para obtener tablas y gráficos.</li>
+                    </ol>
+                    <div class="bg-gray-700 p-4 rounded-md border border-gray-600">
+                        <p class="flex items-center text-gray-300">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Nota:</strong> Los datos se guardan temporalmente en la sesión.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <!-- Input Form -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold mb-3 text-gray-200">Ingreso de Datos de Granulometría</h2>
+                <form id="fineness-form" class="space-y-8">
+                    <div class="table-container">
+                        <!-- Fine Aggregate Table -->
+                        <div class="card p-6 flex-1">
+                            <h3 class="text-lg font-medium mb-4 pb-2 border-b border-gray-600 text-gray-200 centered-title">
+                                <i class="fas fa-layer-group text-gray-200 mr-2"></i>
+                                Agregado Fino (Arena)
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead>
+                                        <tr>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Tamiz</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Milímetros</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Peso Ret. (g)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fine-input-table">
+                                        <tr><td>3”</td><td>75.00</td><td><input type="number" name="fine-3in" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>2”</td><td>50.00</td><td><input type="number" name="fine-2in" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>1 1/2”</td><td>37.50</td><td><input type="number" name="fine-1_5in" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>1”</td><td>25.00</td><td><input type="number" name="fine-1in" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>3/4”</td><td>19.00</td><td><input type="number" name="fine-3_4in" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>1/2”</td><td>12.70</td><td><input type="number" name="fine-1_2in" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>3/8”</td><td>9.50</td><td><input type="number" name="fine-3_8in" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>1/4”</td><td>6.35</td><td><input type="number" name="fine-1_4in" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 4</td><td>4.75</td><td><input type="number" name="fine-n4" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 8</td><td>2.381</td><td><input type="number" name="fine-n8" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 10</td><td>2.00</td><td><input type="number" name="fine-n10" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 16</td><td>1.191</td><td><input type="number" name="fine-n16" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 20</td><td>0.841</td><td><input type="number" name="fine-n20" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 30</td><td>0.595</td><td><input type="number" name="fine-n30" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 40</td><td>0.42</td><td><input type="number" name="fine-n40" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 50</td><td>0.295</td><td><input type="number" name="fine-n50" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 80</td><td>0.177</td><td><input type="number" name="fine-n80" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 100</td><td>0.149</td><td><input type="number" name="fine-n100" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>N° 200</td><td>0.075</td><td><input type="number" name="fine-n200" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                        <tr><td>Fondo</td><td>0.00</td><td><input type="number" name="fine-fondo" step="0.01" min="0" onpaste="pasteData(event, 'fine', this)"></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Coarse Aggregate Table -->
+                        <div class="card p-6 flex-1">
+                            <h3 class="text-lg font-medium mb-4 pb-2 border-b border-gray-600 text-gray-200 centered-title">
+                                <i class="fas fa-mountain text-gray-200 mr-2"></i>
+                                Agregado Grueso (Piedra)
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead>
+                                        <tr>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Tamiz</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Milímetros</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Peso Ret. (g)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="coarse-input-table">
+                                        <tr><td>3”</td><td>75.00</td><td><input type="number" name="coarse-3in" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>2”</td><td>50.00</td><td><input type="number" name="coarse-2in" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>1 1/2”</td><td>37.50</td><td><input type="number" name="coarse-1_5in" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>1”</td><td>25.00</td><td><input type="number" name="coarse-1in" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>3/4”</td><td>19.00</td><td><input type="number" name="coarse-3_4in" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>1/2”</td><td>12.70</td><td><input type="number" name="coarse-1_2in" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>3/8”</td><td>9.50</td><td><input type="number" name="coarse-3_8in" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>1/4”</td><td>6.35</td><td><input type="number" name="coarse-1_4in" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 4</td><td>4.75</td><td><input type="number" name="coarse-n4" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 8</td><td>2.381</td><td><input type="number" name="coarse-n8" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 10</td><td>2.00</td><td><input type="number" name="coarse-n10" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 16</td><td>1.191</td><td><input type="number" name="coarse-n16" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 20</td><td>0.841</td><td><input type="number" name="coarse-n20" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 30</td><td>0.595</td><td><input type="number" name="coarse-n30" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 40</td><td>0.42</td><td><input type="number" name="coarse-n40" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 50</td><td>0.295</td><td><input type="number" name="coarse-n50" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 80</td><td>0.177</td><td><input type="number" name="coarse-n80" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 100</td><td>0.149</td><td><input type="number" name="coarse-n100" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>N° 200</td><td>0.075</td><td><input type="number" name="coarse-n200" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                        <tr><td>Fondo</td><td>0.00</td><td><input type="number" name="coarse-fondo" step="0.01" min="0" onpaste="pasteData(event, 'coarse', this)"></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Buttons -->
+                    <div class="flex justify-center gap-4">
+                        <button type="button" id="calculate-btn"
+                            class="bg-gray-900 hover:bg-gray-700 text-gray-200 font-bold py-3 px-8 rounded-full transition-all duration-300 flex items-center text-lg">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Calcular Módulos
+                        </button>
+                        <button type="button" id="reset-btn"
+                            class="bg-gray-900 hover:bg-gray-700 text-gray-200 font-bold py-3 px-8 rounded-full transition-all duration-300 flex items-center text-lg">
+                            <i class="fas fa-undo mr-2"></i>
+                            Limpiar
+                        </button>
+                    </div>
+                </form>
+            </section>
+            <!-- Results Section -->
+            <section id="results-section" class="hidden mb-8">
+                <h2 class="text-xl font-semibold mb-3 text-gray-200">Resultados de Granulometría</h2>
+                <div id="loading-results" class="hidden">
+                    <div class="card p-6 text-center">
+                        <div class="animate-spin mx-auto mb-4 w-12 h-12 border-4 border-gray-200 border-t-transparent rounded-full"></div>
+                        <p class="text-gray-300">Calculando módulos de finura...</p>
+                    </div>
+                </div>
+                <div id="error-message" class="hidden error-message">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <span id="error-text">Ha ocurrido un error al calcular. Por favor verifica los datos e intenta nuevamente.</span>
+                </div>
+                <div id="results-content" class="hidden">
+                    <div class="table-container">
+                        <!-- Fine Aggregate Results -->
+                        <div class="card p-6 flex-1">
+                            <h3 class="text-lg font-medium mb-4 pb-2 border-b border-gray-600 text-gray-200 centered-title">Agregado Fino (Arena)</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead>
+                                        <tr>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Tamiz</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Milímetros</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Peso Ret. (g)</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">% Peso Retenido</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">% Ret. Acumulado</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">% Pasante</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Límite Inferior</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Límite Superior</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fine-results-table"></tbody>
+                                </table>
+                            </div>
+                            <p id="fine-fineness" class="font-medium text-gray-200 mt-4"></p>
+                            <p id="fine-nominal-size" class="font-medium text-gray-200"></p>
+                            <div class="chart-container mt-4">
+                                <canvas id="fine-chart" aria-label="Gráfico de curva granulométrica para agregado fino"></canvas>
+                                <button type="button" id="copy-fine-chart" class="bg-gray-900 hover:bg-gray-700 text-gray-200 font-bold py-2 px-4 rounded-full transition-all duration-300 flex items-center mx-auto mt-2">
+                                    <i class="fas fa-copy mr-2"></i> Copiar
+                                </button>
+                                <p id="fine-copy-message" class="copy-message">¡Gráfico copiado!</p>
+                            </div>
+                        </div>
+                        <!-- Coarse Aggregate Results -->
+                        <div class="card p-6 flex-1">
+                            <h3 class="text-lg font-medium mb-4 pb-2 border-b border-gray-600 text-gray-200 centered-title">Agregado Grueso (Piedra)</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead>
+                                        <tr>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Tamiz</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Milímetros</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Peso Ret. (g)</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">% Peso Retenido</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">% Ret. Acumulado</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">% Pasante</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Límite Inferior</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium uppercase tracking-wider">Límite Superior</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="coarse-results-table"></tbody>
+                                </table>
+                            </div>
+                            <p id="coarse-fineness" class="font-medium text-gray-200 mt-4"></p>
+                            <p id="coarse-nominal-size" class="font-medium text-gray-200"></p>
+                            <div class="chart-container mt-4">
+                                <canvas id="coarse-chart" aria-label="Gráfico de curva granulométrica para agregado grueso"></canvas>
+                                <button type="button" id="copy-coarse-chart" class="bg-gray-900 hover:bg-gray-700 text-gray-200 font-bold py-2 px-4 rounded-full transition-all duration-300 flex items-center mx-auto mt-2">
+                                    <i class="fas fa-copy mr-2"></i> Copiar
+                                </button>
+                                <p id="coarse-copy-message" class="copy-message">¡Gráfico copiado!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-gray-300 py-6 border-t border-gray-600">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mb-4 md:mb-0">
+                        <h3 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-cubes mr-2"></i>
+                            APP PARA DEFINIR EL MÓDULO DE FINURA
+                        </h3>
+                        <p class="text-gray-400 text-sm mt-1">Herramienta para análisis de agregados</p>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="javascript:void(0)" class="text-gray-400 hover:text-gray-200"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="javascript:void(0)" class="text-gray-400 hover:text-gray-200"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="javascript:void(0)" class="text-gray-400 hover:text-gray-200"><i class="fab fa-linkedin fa-lg"></i></a>
+                        <a href="javascript:void(0)" class="text-gray-400 hover:text-gray-200"><i class="fab fa-instagram fa-lg"></i></a>
+                    </div>
+                </div>
+                <div class="mt-6 border-t border-gray-600 pt-4 flex flex-col md:flex-row justify-between">
+                    <p class="text-sm text-gray-400">© 2025 Ing. Carlos H. Huaytan Victoria. Todos los derechos reservados.</p>
+                    <div class="flex space-x-6 mt-2 md:mt-0">
+                        <a href="javascript:void(0)" class="text-sm text-gray-400 hover:text-gray-200">Términos de Uso</a>
+                        <a href="javascript:void(0)" class="text-sm text-gray-400 hover:text-gray-200">Política de Privacidad</a>
+                        <a href="javascript:void(0)" class="text-sm text-gray-400 hover:text-gray-200">Contacto</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" onerror="loadLocalChartJs()"></script>
+    <script>
+        function loadLocalChartJs() {
+            const script = document.createElement('script');
+            script.src = 'chart.umd.min.js'; // Ensure chart.umd.min.js is in the same directory as index.html
+            document.head.appendChild(script);
+        }
 
-🏗️ Ingeniero Civil 🏗️ 
-(Universidad Católica Sedes Sapientiae)  
+        function pasteData(event, type, inputElement) {
+            event.preventDefault();
+            const clipboardData = event.clipboardData || window.clipboardData;
+            const pastedData = clipboardData.getData('text').trim().split(/\s+/).map(v => {
+                const num = parseFloat(v);
+                return isNaN(num) ? 0 : num; // Preserve explicit zeros
+            });
+            const tableId = type === 'fine' ? 'fine-input-table' : 'coarse-input-table';
+            const inputs = Array.from(document.querySelectorAll(`#${tableId} input[type="number"]`));
+            const startIndex = inputs.indexOf(inputElement);
+            if (startIndex === -1) return;
+            // Fill inputs starting from the selected cell
+            pastedData.forEach((value, i) => {
+                if (startIndex + i < inputs.length) {
+                    inputs[startIndex + i].value = value.toFixed(2);
+                }
+            });
+            // Fill remaining inputs with 0 if necessary
+            for (let i = startIndex + pastedData.length; i < inputs.length; i++) {
+                inputs[i].value = '0.00';
+            }
+        }
 
-🏗️ Técn. Construcción Civil 🏗️ 
-(I.S.T.P. "Adolfo Vienrich") 
+        function interpolateLimits(data) {
+            const interpolated = [];
+            let lastValid = null;
+            let nextValidIndex = -1;
+
+            for (let i = 0; i < data.length; i++) {
+                if (data[i] !== null) {
+                    lastValid = data[i];
+                    interpolated.push(lastValid);
+                    // Buscar el siguiente valor válido
+                    nextValidIndex = data.indexOf(lastValid, i + 1);
+                } else if (lastValid !== null) {
+                    if (nextValidIndex === -1) {
+                        // Si no hay siguiente valor válido, extender el último valor válido
+                        interpolated.push(lastValid);
+                    } else {
+                        // Interpolar entre el último valor válido y el siguiente
+                        const slope = (data[nextValidIndex] - lastValid) / (nextValidIndex - i);
+                        for (let j = i; j < nextValidIndex; j++) {
+                            interpolated.push(lastValid + slope * (j - i));
+                        }
+                        i = nextValidIndex - 1; // Saltar al siguiente valor válido
+                    }
+                } else {
+                    interpolated.push(null); // Si no hay valor válido previo, mantener null
+                }
+            }
+            // Rellenar los últimos valores con el último válido si es necesario
+            if (lastValid !== null) {
+                for (let i = interpolated.length; i < data.length; i++) {
+                    interpolated.push(lastValid);
+                }
+            }
+            return interpolated;
+        }
+
+        function copyChart(canvasId, messageId) {
+            const canvas = document.getElementById(canvasId);
+            canvas.toBlob(blob => {
+                const item = new ClipboardItem({ 'image/png': blob });
+                navigator.clipboard.write([item]).then(() => {
+                    const message = document.getElementById(messageId);
+                    message.style.display = 'block';
+                    setTimeout(() => { message.style.display = 'none'; }, 2000);
+                }).catch(err => {
+                    console.error('Error al copiar el gráfico:', err);
+                    const errorMessage = document.getElementById('error-message');
+                    const errorText = document.getElementById('error-text');
+                    errorMessage.classList.remove('hidden');
+                    errorText.textContent = 'Error al copiar el gráfico. Por favor intenta nuevamente.';
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('fineness-form');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const resultsSection = document.getElementById('results-section');
+            const loadingResults = document.getElementById('loading-results');
+            const resultsContent = document.getElementById('results-content');
+            const errorMessage = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            const fineResultsTable = document.getElementById('fine-results-table');
+            const coarseResultsTable = document.getElementById('coarse-results-table');
+            const fineFineness = document.getElementById('fine-fineness');
+            const coarseFineness = document.getElementById('coarse-fineness');
+            const fineNominalSize = document.getElementById('fine-nominal-size');
+            const coarseNominalSize = document.getElementById('coarse-nominal-size');
+            const copyFineChartBtn = document.getElementById('copy-fine-chart');
+            const copyCoarseChartBtn = document.getElementById('copy-coarse-chart');
+            let fineChart, coarseChart;
+
+            const sieveData = [
+                { tamiz: '3”', mm: 75.00, fineLimInf: 100, fineLimSup: 100, coarseLimInf: 100, coarseLimSup: 100 },
+                { tamiz: '2”', mm: 50.00, fineLimInf: 100, fineLimSup: 100, coarseLimInf: 100, coarseLimSup: 100 },
+                { tamiz: '1 1/2”', mm: 37.50, fineLimInf: 100, fineLimSup: 100, coarseLimInf: 95, coarseLimSup: 100 },
+                { tamiz: '1”', mm: 25.00, fineLimInf: 100, fineLimSup: 100, coarseLimInf: null, coarseLimSup: null },
+                { tamiz: '3/4”', mm: 19.00, fineLimInf: 100, fineLimSup: 100, coarseLimInf: 35, coarseLimSup: 70 },
+                { tamiz: '1/2”', mm: 12.70, fineLimInf: 100, fineLimSup: 100, coarseLimInf: null, coarseLimSup: null },
+                { tamiz: '3/8”', mm: 9.50, fineLimInf: 100, fineLimSup: 100, coarseLimInf: 10, coarseLimSup: 30 },
+                { tamiz: '1/4”', mm: 6.35, fineLimInf: 100, fineLimSup: 100, coarseLimInf: null, coarseLimSup: null },
+                { tamiz: 'N° 4', mm: 4.75, fineLimInf: 95, fineLimSup: 100, coarseLimInf: 0, coarseLimSup: 5 },
+                { tamiz: 'N° 8', mm: 2.381, fineLimInf: 80, fineLimSup: 100, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'N° 10', mm: 2.00, fineLimInf: null, fineLimSup: null, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'N° 16', mm: 1.191, fineLimInf: 50, fineLimSup: 85, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'N° 20', mm: 0.841, fineLimInf: null, fineLimSup: null, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'N° 30', mm: 0.595, fineLimInf: 25, fineLimSup: 60, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'N° 40', mm: 0.42, fineLimInf: null, fineLimSup: null, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'N° 50', mm: 0.295, fineLimInf: 10, fineLimSup: 30, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'N° 80', mm: 0.177, fineLimInf: null, fineLimSup: null, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'N° 100', mm: 0.149, fineLimInf: 0, fineLimSup: 10, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'N° 200', mm: 0.075, fineLimInf: 0, fineLimSup: 0, coarseLimInf: 0, coarseLimSup: 0 },
+                { tamiz: 'Fondo', mm: 0.00, fineLimInf: 0, fineLimSup: 0, coarseLimInf: 0, coarseLimSup: 0 }
+            ];
+
+            copyFineChartBtn.addEventListener('click', () => copyChart('fine-chart', 'fine-copy-message'));
+            copyCoarseChartBtn.addEventListener('click', () => copyChart('coarse-chart', 'coarse-copy-message'));
+
+            calculateBtn.addEventListener('click', () => {
+                const fineInputs = Array.from(document.querySelectorAll('#fine-input-table input[type="number"]')).map(input => {
+                    const value = parseFloat(input.value) || 0;
+                    return isNaN(value) ? 0 : value;
+                });
+                const coarseInputs = Array.from(document.querySelectorAll('#coarse-input-table input[type="number"]')).map(input => {
+                    const value = parseFloat(input.value) || 0;
+                    return isNaN(value) ? 0 : value;
+                });
+
+                const fineTotal = fineInputs.reduce((sum, val) => sum + val, 0);
+                const coarseTotal = coarseInputs.reduce((sum, val) => sum + val, 0);
+
+                if (fineTotal <= 0 && coarseTotal <= 0) {
+                    errorMessage.classList.remove('hidden');
+                    errorText.textContent = 'Debe ingresar al menos un peso mayor a 0 gramos en alguna de las tablas.';
+                    resultsSection.classList.add('hidden');
+                    return;
+                }
+
+                loadingResults.classList.remove('hidden');
+                resultsSection.classList.remove('hidden');
+                resultsContent.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+
+                setTimeout(() => {
+                    try {
+                        // Calculating fine aggregate results
+                        let fineCumRet = 0;
+                        const fineCumRetValues = [];
+                        fineResultsTable.innerHTML = '';
+                        fineInputs.forEach((weight, i) => {
+                            const data = sieveData[i];
+                            const pctRet = fineTotal > 0 ? (weight / fineTotal) * 100 : 0;
+                            fineCumRet += pctRet;
+                            fineCumRetValues.push(fineCumRet);
+                            const pctPass = 100 - fineCumRet;
+                            fineResultsTable.innerHTML += `
+                                <tr>
+                                    <td class="py-2 px-4">${data.tamiz}</td>
+                                    <td class="py-2 px-4">${data.mm}</td>
+                                    <td class="py-2 px-4">${weight.toFixed(2)}</td>
+                                    <td class="py-2 px-4">${pctRet.toFixed(2)}</td>
+                                    <td class="py-2 px-4">${fineCumRet.toFixed(2)}</td>
+                                    <td class="py-2 px-4">${pctPass.toFixed(2)}</td>
+                                    <td class="py-2 px-4">${data.fineLimInf !== null ? data.fineLimInf.toFixed(2) : ''}</td>
+                                    <td class="py-2 px-4">${data.fineLimSup !== null ? data.fineLimSup.toFixed(2) : ''}</td>
+                                </tr>
+                            `;
+                        });
+
+                        // Calculating coarse aggregate results
+                        let coarseCumRet = 0;
+                        const coarseCumRetValues = [];
+                        coarseResultsTable.innerHTML = '';
+                        coarseInputs.forEach((weight, i) => {
+                            const data = sieveData[i];
+                            const pctRet = coarseTotal > 0 ? (weight / coarseTotal) * 100 : 0;
+                            coarseCumRet += pctRet;
+                            coarseCumRetValues.push(coarseCumRet);
+                            const pctPass = 100 - coarseCumRet;
+                            coarseResultsTable.innerHTML += `
+                                <tr>
+                                    <td class="py-2 px-4">${data.tamiz}</td>
+                                    <td class="py-2 px-4">${data.mm}</td>
+                                    <td class="py-2 px-4">${weight !== 0 ? weight.toFixed(2) : '-'}</td>
+                                    <td class="py-2 px-4">${pctRet.toFixed(2)}</td>
+                                    <td class="py-2 px-4">${coarseCumRet.toFixed(2)}</td>
+                                    <td class="py-2 px-4">${pctPass.toFixed(2)}</td>
+                                    <td class="py-2 px-4">${data.coarseLimInf !== null ? data.coarseLimInf.toFixed(2) : ''}</td>
+                                    <td class="py-2 px-4">${data.coarseLimSup !== null ? data.coarseLimSup.toFixed(2) : ''}</td>
+                                </tr>
+                            `;
+                        });
+
+                        // Calculating fineness modulus using % retained accumulated
+                        const fineFinenessValue = [0, 2, 4, 6, 8, 9, 11, 13, 15, 17].reduce((sum, i) => {
+                            return sum + (fineCumRetValues[i] || 0);
+                        }, 0) / 100;
+
+                        const coarseFinenessValue = [0, 2, 4, 6, 8, 9, 11, 13, 15, 17].reduce((sum, i) => {
+                            return sum + (coarseCumRetValues[i] || 0);
+                        }, 0) / 100;
+
+                        // Setting fineness modulus and nominal size
+                        fineFineness.textContent = `Módulo de finura de finos = ${fineFinenessValue.toFixed(2)} (Rango: 2.40 - 3.00)`;
+                        coarseFineness.textContent = `Módulo de finura de gruesos = ${coarseFinenessValue.toFixed(2)} (Rango: 6.00 - 8.00)`;
+
+                        // Determining nominal maximum size
+                        let fineNominalSizeValue = 'N° 4';
+                        for (let i = 0; i < fineInputs.length; i++) {
+                            if (fineInputs[i] > 0 && sieveData[i].mm <= 4.75) {
+                                fineNominalSizeValue = sieveData[i].tamiz;
+                                break;
+                            }
+                        }
+                        let coarseNominalSizeValue = '3/4”';
+                        for (let i = 0; i < coarseInputs.length; i++) {
+                            if (coarseInputs[i] > 0 && sieveData[i].mm <= 19.00) {
+                                coarseNominalSizeValue = sieveData[i].tamiz;
+                                break;
+                            }
+                        }
+                        fineNominalSize.textContent = `Tamaño nominal máximo = ${fineNominalSizeValue}`;
+                        coarseNominalSize.textContent = `Tamaño nominal máximo = ${coarseNominalSizeValue}`;
+
+                        // Show results even if charts fail
+                        resultsContent.classList.remove('hidden');
+                        loadingResults.classList.add('hidden');
+
+                        // Generating charts (optional, only if Chart.js is loaded)
+                        if (typeof Chart === 'undefined') {
+                            errorMessage.classList.remove('hidden');
+                            errorText.textContent = 'No se pudo cargar Chart.js. Las tablas y módulos de finura están disponibles, pero los gráficos no se mostrarán.';
+                            return;
+                        }
+
+                        if (fineChart) fineChart.destroy();
+                        if (coarseChart) coarseChart.destroy();
+
+                        const finePassing = fineCumRetValues.map(cumRet => (100 - cumRet).toFixed(2)).reverse();
+                        const coarsePassing = coarseCumRetValues.map(cumRet => (100 - cumRet).toFixed(2)).reverse();
+                        const fineLowerLimits = interpolateLimits(sieveData.map(s => s.fineLimInf)).reverse();
+                        const fineUpperLimits = interpolateLimits(sieveData.map(s => s.fineLimSup)).reverse();
+                        const coarseLowerLimits = interpolateLimits(sieveData.map(s => s.coarseLimInf)).reverse();
+                        const coarseUpperLimits = interpolateLimits(sieveData.map(s => s.coarseLimSup)).reverse();
+
+                        fineChart = new Chart(document.getElementById('fine-chart'), {
+                            type: 'line',
+                            data: {
+                                labels: sieveData.map(s => s.mm).reverse(),
+                                datasets: [
+                                    { label: '% Pasante', data: finePassing, borderColor: '#3B82F6', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#3B82F6', fill: false, tension: 0.3 },
+                                    { label: 'Límite Inferior', data: fineLowerLimits, borderColor: '#10B981', borderWidth: 2, pointRadius: 0, fill: false },
+                                    { label: 'Límite Superior', data: fineUpperLimits, borderColor: '#F59E0B', borderWidth: 2, pointRadius: 0, fill: false }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    x: { type: 'logarithmic', title: { display: true, text: 'Tamaño del Tamiz (mm)', color: '#333333' }, reverse: true, ticks: { color: '#333333' }, grid: { color: '#E0E0E0' } },
+                                    y: { title: { display: true, text: '% Pasante', color: '#333333' }, min: 0, max: 100, ticks: { color: '#333333', stepSize: 10 }, grid: { color: '#E0E0E0' } }
+                                },
+                                plugins: {
+                                    title: { display: true, text: 'Curva Granulométrica - Agregado Fino', color: '#333333' },
+                                    legend: { labels: { color: '#333333' } }
+                                }
+                            }
+                        });
+
+                        coarseChart = new Chart(document.getElementById('coarse-chart'), {
+                            type: 'line',
+                            data: {
+                                labels: sieveData.map(s => s.mm).reverse(),
+                                datasets: [
+                                    { label: '% Pasante', data: coarsePassing, borderColor: '#3B82F6', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#3B82F6', fill: false, tension: 0.3 },
+                                    { label: 'Límite Inferior', data: coarseLowerLimits, borderColor: '#10B981', borderWidth: 2, pointRadius: 0, fill: false },
+                                    { label: 'Límite Superior', data: coarseUpperLimits, borderColor: '#F59E0B', borderWidth: 2, pointRadius: 0, fill: false }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    x: { type: 'logarithmic', title: { display: true, text: 'Tamaño del Tamiz (mm)', color: '#333333' }, reverse: true, ticks: { color: '#333333' }, grid: { color: '#E0E0E0' } },
+                                    y: { title: { display: true, text: '% Pasante', color: '#333333' }, min: 0, max: 100, ticks: { color: '#333333', stepSize: 10 }, grid: { color: '#E0E0E0' } }
+                                },
+                                plugins: {
+                                    title: { display: true, text: 'Curva Granulométrica - Agregado Grueso', color: '#333333' },
+                                    legend: { labels: { color: '#333333' } }
+                                }
+                            }
+                        });
+                    } catch (error) {
+                        console.error(error);
+                        errorMessage.classList.remove('hidden');
+                        errorText.textContent = error.message.includes('Chart is not defined') 
+                            ? 'No se pudo cargar Chart.js. Las tablas y módulos de finura están disponibles, pero los gráficos no se mostrarán.' 
+                            : error.message;
+                    } finally {
+                        loadingResults.classList.add('hidden');
+                    }
+                }, 1000);
+            });
+
+            resetBtn.addEventListener('click', () => {
+                form.querySelectorAll('input').forEach(input => input.value = '');
+                resultsSection.classList.add('hidden');
+                if (fineChart) fineChart.destroy();
+                if (coarseChart) coarseChart.destroy();
+                fineResultsTable.innerHTML = '';
+                coarseResultsTable.innerHTML = '';
+                errorMessage.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
